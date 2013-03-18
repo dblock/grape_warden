@@ -14,4 +14,16 @@ use Warden::Manager do |manager|
   manager.failure_app = GWAR::FailureApp
 end
 
+Warden::Strategies.add(:password) do
+
+  def valid?
+    params[:username] || params[:password]
+  end
+
+  def authenticate!
+    u = GWAR::User.authenticate(params[:username], params[:password])
+    u.nil? ? fail!("Could not log in") : success!(u)
+  end
+end
+
 run GWAR::API

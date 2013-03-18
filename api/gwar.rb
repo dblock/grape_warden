@@ -13,11 +13,6 @@ module GWAR
       env['warden']
     end
 
-    get "version" do
-        {"answer" => "GWAR"}
-    end
-
-
   end
 
   class FailureApp
@@ -25,8 +20,16 @@ module GWAR
   end
 
   class User
+    attr_reader :name
+    def initialize(name)
+        @name = name
+    end
+
     def find_by_id(id)
-        return 'Susan'
+        return User.new('susan')
+    end
+    def self.authenticate(u, p)
+        return User.new('susan')
     end
   end
 end
