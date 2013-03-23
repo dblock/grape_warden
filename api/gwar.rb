@@ -1,47 +1,32 @@
-require 'grape'
-require 'warden'
+require 'user'
 
 module GWAR
   class API < Grape::API
+
+    use Rack::Session::Cookie, :secret => "replace this with some secret key"
+
+    use Warden::Manager do |manager|
+      manager.default_strategies :password
+      manager.failure_app = GWAR::API
+    end
+    
     format :json
 
     get "ping" do
       { "answer" => "pong" }
     end
 
-    get "warden" do
-      env['warden'].authenticate!
-      { "status_code" => 200, "status_text" => "Authorized"}
-    end
-
     get "info" do
-        env['warden'].authenticate!
-        env['warden'].user.name
-    end
-
-    get 'unauthenticated' do
-        { "status_code" => 401, "status_text" => "Unauthorized"}
+      env['warden'].authenticate
+      error! "Unauthorized", 401 unless env['warden'].user
+      { "username" => env['warden'].user.name }
     end
 
     post 'login' do
-        env['warden'].authenticate(:password)
+      env['warden'].authenticate(:password)
+      error! "Invalid username or password", 401 unless env['warden'].user
+      { "username" => env['warden'].user.name }
     end
-  end
-
-  class User
-    attr_reader :name
-    attr_reader :id
-    def initialize(name)
-        @name = name
-        @id = 2013
-    end
-
-    def self.get(id)
-        return User.new('susan')
-    end
-
-    def self.authenticate(u, p)
-        return User.new('susan')
-    end
+    
   end
 end
